@@ -2,21 +2,27 @@ import itertools
 import msoffcrypto
 import string
 import subprocess
+import os
 
 
-def main():  # main function to select function
-    print("Funciona com senhas numéricas de até 10 números de 0 a 9 de tamanho.")
+def main():
     print("Escolha a extensão:")
     which = int(input(
-        "1 = .docx/.xlsx, 2 = PGP\n"
+        "1 = .docx/.xlsx (senha numerica), 2 = .docx/.xlsx (alfanumérica) ,2 = PGP\n"
         "Stop! : "))
     if which == 1:
         try:
             file_docx = str(input("Which DOCX/XLSX-File?\n"))
-            decrypt_docx(file_docx)
+            decrypt_docx(file_docx, alpha=False)
         except:
             print("Error!")
     elif which == 2:
+        try:
+            file_docx = str(input("Which DOCX/XLSX-File?\n"))
+            decrypt_docx(file_docx, alpha=True)
+        except:
+            print("Error!")
+    elif which == 3:
         try:
             file_gpg = str(input("Which File?\n"))
             decrypt_gpg(file_gpg)
@@ -27,12 +33,20 @@ def main():  # main function to select function
     input("Press any key to continue...")
 
 
-def decrypt_docx(file_docx):
+def decrypt_docx(file_docx: str, alpha):
+    file_docx = file_docx.replace('\"', "")
+    if os.path.exists(file_docx):
+        print("O arquivo existe.")
+    else:
+        exit()
+
     chars = string.digits
+    if alpha:
+        chars = string.ascii_letters + string.digits
     attempts = 0
     # print that you can go shopping :D
     print("Lançando ataques no arquivo docx/xlsx!\nIsso pode demorar...")
-    for plen in range(1, 11):  # already the same
+    for plen in range(1, 9):  # already the same
         for guess in itertools.product(chars, repeat=plen):
             attempts += 1
             guess = ''.join(guess)
@@ -44,8 +58,7 @@ def decrypt_docx(file_docx):
                 # file-name and read-access only
                 # if password required, take the generated
                 file.load_key(password=guess)
-                file.decrypt(open("decrypted.docx",
-                                  "wb"))  # if password correct, open new file with write-access and copy content in it
+                file.decrypt(open("decrypted.docx", "wb"))
                 print(
                     "[DOCX, XLSX BRUTE-FORCE]: found password! password: {} with {} attempts".format(guess, attempts))
                 return True
@@ -59,7 +72,7 @@ def decrypt_gpg(file_gpg):
     attempts = 0
     # print that you can go shopping :D
     print("Searching for password!\nThis may take long time...")
-    for plen in range(1, 11):  # already the same
+    for plen in range(1, 9):  # already the same
         for guess in itertools.product(chars, repeat=plen):
             attempts += 1
             guess = ''.join(guess)
